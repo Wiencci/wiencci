@@ -1,0 +1,6 @@
+!pip install mpmath
+!pip install gmpy2
+!pip install tqdm
+!pip install numpy
+!pip install pandas_datareader
+!pip install psutil

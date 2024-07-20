@@ -1,0 +1,65 @@
+import gmpy2
+from gmpy2 import mpz, mpfr, random_state
+
+# Inicializa o estado aleatório do gmpy2
+gerador_randomico = random_state(hash(gmpy2.random_state()))
+
+def estimar_intervalo_primo(numero, tamanho_intervalo=1000):
+    """
+    Estima um intervalo provável para encontrar um número primo próximo ao número dado.
+
+    Args:
+        numero (mpz): O número ao redor do qual procurar primos.
+        tamanho_intervalo (int): Tamanho do intervalo de busca.
+
+    Returns:
+        tuple: Uma tupla (inicio, fim) representando o intervalo estimado.
+    """
+    # Estimativa do intervalo médio entre primos próximos ao número
+    intervalo_medio = gmpy2.log(numero)
+
+    # Adicionamos alguma aleatoriedade para não sugerir sempre o mesmo intervalo
+    deslocamento_aleatorio = mpz(gmpy2.mpfr_random(gerador_randomico) * intervalo_medio * 2 - intervalo_medio)
+
+    # Calculamos o início do intervalo
+    inicio = max(mpz(2), numero + deslocamento_aleatorio - tamanho_intervalo // 2)
+
+    # Garantimos que o intervalo tenha o tamanho especificado
+    fim = inicio + tamanho_intervalo
+
+    return (inicio, fim)
+
+def sugerir_intervalos_busca_primos(inicio, fim, num_sugestoes=5, tamanho_intervalo=1000):
+    """
+    Sugere múltiplos intervalos para busca de primos dentro de um intervalo maior.
+
+    Args:
+        inicio (mpz): Início do intervalo total de busca.
+        fim (mpz): Fim do intervalo total de busca.
+        num_sugestoes (int): Número de intervalos sugeridos.
+        tamanho_intervalo (int): Tamanho de cada intervalo sugerido.
+
+    Returns:
+        list: Lista de tuplas (inicio, fim) representando os intervalos sugeridos, ordenados pelo início.
+    """
+    sugestoes = []
+    tamanho_intervalo_total = fim - inicio
+    for _ in range(num_sugestoes):
+        ponto_aleatorio = inicio + mpz(gmpy2.mpfr_random(gerador_randomico) * tamanho_intervalo_total)
+        intervalo = estimar_intervalo_primo(ponto_aleatorio, tamanho_intervalo)
+        sugestoes.append(intervalo)
+
+    return sorted(sugestoes, key=lambda x: x[0])
+
+# Exemplo de uso
+inicio = mpz(10) ** 9999  # Número de 10000 dígitos
+fim = mpz(10) ** 10000 - 1  # Próximo número de 10001 dígitos - 1
+
+print(f"Sugestões de intervalos para busca de primos entre números de 10000 e 10001 dígitos:")
+sugestoes = sugerir_intervalos_busca_primos(inicio, fim, num_sugestoes=5, tamanho_intervalo=1000)
+for i, (inicio_intervalo, fim_intervalo) in enumerate(sugestoes, 1):
+    print(f"Sugestão {i}:")
+    print(f"  Início: {inicio_intervalo}")
+    print(f"  Fim:    {fim_intervalo}")
+    print(f"  Tamanho do intervalo: {fim_intervalo - inicio_intervalo}")
+    print()
